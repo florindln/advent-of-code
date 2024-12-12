@@ -1,4 +1,4 @@
-package Year_2024.Ex_1_historian_hysteria;
+package Year_2024.Ex_1_Historian_Hysteria;
 
 import java.io.File;
 import java.io.FileNotFoundException;
