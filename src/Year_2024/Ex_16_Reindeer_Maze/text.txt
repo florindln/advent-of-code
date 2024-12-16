@@ -1,71 +1,135 @@
---- Day 4: Ceres Search ---
-"Looks like the Chief's not here. Next!" One of The Historians pulls out a device and pushes the only button on it. After a brief flash, you recognize the interior of the Ceres monitoring station!
+--- Day 16: Reindeer Maze ---
+It's time again for the Reindeer Olympics! This year, the big event is the Reindeer Maze, where the Reindeer compete for the lowest score.
 
-As the search for the Chief continues, a small Elf who lives on the station tugs on your shirt; she'd like to know if you could help her with her word search (your puzzle input). She only has to find one word: XMAS.
+You and The Historians arrive to search for the Chief right as the event is about to start. It wouldn't hurt to watch a little, right?
 
-This word search allows words to be horizontal, vertical, diagonal, written backwards, or even overlapping other words. It's a little unusual, though, as you don't merely need to find one instance of XMAS - you need to find all of them. Here are a few ways XMAS might appear, where irrelevant characters have been replaced with .:
+The Reindeer start on the Start Tile (marked S) facing East and need to reach the End Tile (marked E). They can move forward one tile at a time (increasing their score by 1 point), but never into a wall (#). They can also rotate clockwise or counterclockwise 90 degrees at a time (increasing their score by 1000 points).
+
+To figure out the best place to sit, you start by grabbing a map (your puzzle input) from a nearby kiosk. For example:
+
+###############
+#.......#....E#
+#.#.###.#.###.#
+#.....#.#...#.#
+#.###.#####.#.#
+#.#.#.......#.#
+#.#.#####.###.#
+#...........#.#
+###.#.#####.#.#
+#...#.....#.#.#
+#.#.#.###.#.#.#
+#.....#...#.#.#
+#.###.#.#.#.#.#
+#S..#.....#...#
+###############
+There are many paths through this maze, but taking any of the best paths would incur a score of only 7036. This can be achieved by taking a total of 36 steps forward and turning 90 degrees a total of 7 times:
 
 
-..X...
-.SAMX.
-.A..A.
-XMAS.S
-.X....
-The actual word search will be full of letters instead. For example:
+###############
+#.......#....E#
+#.#.###.#.###^#
+#.....#.#...#^#
+#.###.#####.#^#
+#.#.#.......#^#
+#.#.#####.###^#
+#..>>>>>>>>v#^#
+###^#.#####v#^#
+#>>^#.....#v#^#
+#^#.#.###.#v#^#
+#^....#...#v#^#
+#^###.#.#.#v#^#
+#S..#.....#>>^#
+###############
+Here's a second example:
 
-MMMSXXMASM
-MSAMXMSMSA
-AMXSXMAAMM
-MSAMASMSMX
-XMASAMXAMM
-XXAMMXXAMA
-SMSMSASXSS
-SAXAMASAAA
-MAMMMXMMMM
-MXMXAXMASX
-In this word search, XMAS occurs a total of 18 times; here's the same word search again, but where letters not involved in any XMAS have been replaced with .:
+#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#.#
+#.#.#.#...#...#.#
+#.#.#.#.###.#.#.#
+#...#.#.#.....#.#
+#.#.#.#.#.#####.#
+#.#...#.#.#.....#
+#.#.#####.#.###.#
+#.#.#.......#...#
+#.#.###.#####.###
+#.#.#...#.....#.#
+#.#.#.#####.###.#
+#.#.#.........#.#
+#.#.#.#########.#
+#S#.............#
+#################
+In this maze, the best paths cost 11048 points; following one such path would look like this:
 
-....XXMAS.
-.SAMXMS...
-...S..A...
-..A.A.MS.X
-XMASAMX.MM
-X.....XA.A
-S.S.S.S.SS
-.A.A.A.A.A
-..M.M.M.MM
-.X.X.XMASX
-Take a look at the little Elf's word search. How many times does XMAS appear?
+#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#^#
+#.#.#.#...#...#^#
+#.#.#.#.###.#.#^#
+#>>v#.#.#.....#^#
+#^#v#.#.#.#####^#
+#^#v..#.#.#>>>>^#
+#^#v#####.#^###.#
+#^#v#..>>>>^#...#
+#^#v###^#####.###
+#^#v#>>^#.....#.#
+#^#v#^#####.###.#
+#^#v#^........#.#
+#^#v#^#########.#
+#S#>>^..........#
+#################
+Note that the path shown above includes one 90 degree turn as the very first move, rotating the Reindeer from facing East to facing North.
 
-Your puzzle answer was 2646.
+Analyze your map carefully. What is the lowest score a Reindeer could possibly get?
+
+Your puzzle answer was 83444.
 
 --- Part Two ---
-The Elf looks quizzically at you. Did you misunderstand the assignment?
+Now that you know what the best paths look like, you can figure out the best spot to sit.
 
-Looking for the instructions, you flip over the word search to find that this isn't actually an XMAS puzzle; it's an X-MAS puzzle in which you're supposed to find two MAS in the shape of an X. One way to achieve that is like this:
+Every non-wall tile (S, ., or E) is equipped with places to sit along the edges of the tile. While determining which of these tiles would be the best spot to sit depends on a whole bunch of factors (how comfortable the seats are, how far away the bathrooms are, whether there's a pillar blocking your view, etc.), the most important factor is whether the tile is on one of the best paths through the maze. If you sit somewhere else, you'd miss all the action!
 
-M.S
-.A.
-M.S
-Irrelevant characters have again been replaced with . in the above diagram. Within the X, each MAS can be written forwards or backwards.
+So, you'll need to determine which tiles are part of any best path through the maze, including the S and E tiles.
 
-Here's the same example from before, but this time all of the X-MASes have been kept instead:
+In the first example, there are 45 tiles (marked O) that are part of at least one of the various best paths through the maze:
 
-.M.S......
-..A..MSMS.
-.M.S.MAA..
-..A.ASMSM.
-.M.S.M....
-..........
-S.S.S.S.S.
-.A.A.A.A..
-M.M.M.M.M.
-..........
-In this example, an X-MAS appears 9 times.
+###############
+#.......#....O#
+#.#.###.#.###O#
+#.....#.#...#O#
+#.###.#####.#O#
+#.#.#.......#O#
+#.#.#####.###O#
+#..OOOOOOOOO#O#
+###O#O#####O#O#
+#OOO#O....#O#O#
+#O#O#O###.#O#O#
+#OOOOO#...#O#O#
+#O###.#.#.#O#O#
+#O..#.....#OOO#
+###############
+In the second example, there are 64 tiles that are part of at least one of the best paths:
 
-Flip the word search from the instructions back over to the word search side and try again. How many times does an X-MAS appear?
+#################
+#...#...#...#..O#
+#.#.#.#.#.#.#.#O#
+#.#.#.#...#...#O#
+#.#.#.#.###.#.#O#
+#OOO#.#.#.....#O#
+#O#O#.#.#.#####O#
+#O#O..#.#.#OOOOO#
+#O#O#####.#O###O#
+#O#O#..OOOOO#OOO#
+#O#O###O#####O###
+#O#O#OOO#..OOO#.#
+#O#O#O#####O###.#
+#O#O#OOOOOOO..#.#
+#O#O#O#########.#
+#O#OOO..........#
+#################
+Analyze your map further. How many tiles are part of at least one of the best paths through the maze?
 
-Your puzzle answer was 2000.
+Your puzzle answer was 483.
 
 Both parts of this puzzle are complete! They provide two gold stars: **
 
