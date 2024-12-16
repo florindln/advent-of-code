@@ -33,6 +33,8 @@ class Coords {
     }
 }
 
+record BigCoords(long x,long y){}
+
 class ClawMachine {
     public Coords buttonA;
     public Coords buttonB;
@@ -78,12 +80,16 @@ class ClawMachine {
     }
 }
 
+record Triple<A,B,C>(A buttonA,B buttonB,C prize){}
+
 public class Solution {
     public static void main(String[] args) throws FileNotFoundException {
         File input = new File("src/Year_2024/Ex_13_Claw_Contraption/input.txt");
         Scanner myReader = new Scanner(input);
 
         List<ClawMachine> clawMachines = new ArrayList<>();
+
+        List<Triple<Coords,Coords,BigCoords>> clawMachines2 = new ArrayList<>();
         while (myReader.hasNextLine()) {
             String lineButtonA = myReader.nextLine();
             if (lineButtonA.isEmpty())
@@ -113,12 +119,19 @@ public class Solution {
                 buttonB = new Coords(x, y);
             }
             Coords prize = null;
+            BigCoords prize2 = null;
             if (matcherPrize.find()) {
                 int x = Integer.parseInt(matcherPrize.group(1));
                 int y = Integer.parseInt(matcherPrize.group(2));
                 prize = new Coords(x, y);
+                prize2 = new BigCoords(
+                        10000000000000L
+                                +x,
+                        10000000000000L
+                                +y);
             }
             clawMachines.add(new ClawMachine(buttonA,buttonB,prize,new Coords(0,0)));
+            clawMachines2.add(new Triple<>(buttonA,buttonB,prize2));
         }
 
         myReader.close();
@@ -126,7 +139,79 @@ public class Solution {
 //        System.out.println(clawMachines);
 
         System.out.println("Result part 1: "+ getAllClawMachinesResult(clawMachines));
-//        System.out.println("Result part 2: "+ second);
+        System.out.println("Result part 2: "+ getClawmachinesResultUsingMath(clawMachines2));
+    }
+
+    private static double getClawmachinesResultUsingMath(List<Triple<Coords, Coords, BigCoords>> clawMachines) {
+        double res=0;
+        for(var clawMachine: clawMachines){
+            var sol=solveClawMachineMath(clawMachine);
+            res+=sol;
+        }
+        return res;
+    }
+
+    static private double solveClawMachineMath(Triple<Coords, Coords, BigCoords> clawMachine) {
+        //coefficients of the equations for example 1
+        //equation 1: 94 * A + 22 * B = 8400
+        //equation 2: 34 * A + 67 * B = 5400
+        // A = (8400 - 22 * B) / 94
+        // this gives us everything in terms of B
+        // 34 * ((8400 - 22 * B) / 94) + 67 * B = 5400
+        var buttonA=clawMachine.buttonA();
+        var buttonB=clawMachine.buttonB();
+        var prize=clawMachine.prize();
+
+        //generalized
+        //equation 1: A.x * aPresses + B.x * bPresses = C.x
+        //equation 2: A.y * aPresses + B.y * bPresses = C.y
+        // aPresses = (C.x - B.x * bPresses) / A.x
+        // this gives us everything in terms of bPresses
+        // A.y * ((C.x - B.x * bPresses) / A.x) + B.y * bPresses = C.y
+        //
+
+        var bPresses=solveB(clawMachine);
+        var aPresses = (prize.x() - (long) buttonB.x * bPresses) / buttonA.x;
+
+//        if the result is not an integer, then the answer is not valid
+        if(!isWithinPointOneOfNearestLong(aPresses)  || !isWithinPointOneOfNearestLong(bPresses) )
+            return 0;
+
+        return 3*aPresses+bPresses;
+    }
+
+    public static boolean isWithinPointOneOfNearestLong(double value) {
+        long nearestLong = Math.round(value);
+        return Math.abs(value - nearestLong) <= 0.01;
+    }
+
+    private static double solveB(Triple<Coords, Coords, BigCoords> clawMachine) {
+        var buttonA = clawMachine.buttonA();
+        var buttonB = clawMachine.buttonB();
+        var prize = clawMachine.prize();
+
+        // Extract coefficients
+        double aX = buttonA.x;
+        double aY = buttonA.y;
+        double bX = buttonB.x;
+        double bY = buttonB.y;
+        double cX = prize.x();
+        double cY = prize.y();
+
+        // Generalized substitution for bPresses:
+        // A.y * ((C.x - B.x * bPresses) / A.x) + B.y * bPresses = C.y
+        // Simplify:
+        // (A.y / A.x) * (C.x - B.x * bPresses) + B.y * bPresses = C.y
+        // Let k1 = A.y / A.x, k2 = B.x, k3 = B.y, k4 = C.x, and k5 = C.y
+        double k1 = aY / aX;
+        double k2 = bX;
+        double k3 = bY;
+        double k4 = cX;
+        double k5 = cY;
+
+        // Solve for bPresses:
+        // bPresses * (-k1 * k2 + k3) = k5 - k1 * k4
+        return (k5 - k1 * k4) / (-k1 * k2 + k3);
     }
 
     private static int getAllClawMachinesResult(List<ClawMachine> clawMachines) {
