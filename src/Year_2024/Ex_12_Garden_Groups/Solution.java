@@ -18,6 +18,84 @@ record Region(List<GardenNode> gardenNodes){
     public int getPerimeter(){
         return this.gardenNodes.stream().mapToInt(GardenNode::getPerimeter).sum();
     }
+
+    public int getSides(List<char[]> matrix){
+        //the sides of the polygon is the amount of of corner(from math edges=corners)
+        //to count corners we have 2 types concave and convex corners, ? means any element
+        //  ax                              ?a
+        //  xx <- concave corner            ax <- convex corner
+        //this approach lets us count the corners, only looking at the element up,to the left and diagonal up-left
+        // if above or left doesn't exist (out of bounds), then it counts the same as a different element
+        // do this for all rotations, not only top and left
+
+        var res=0;
+        for (var node:gardenNodes){
+            var corners= getCorners(matrix,node);
+            res+=corners;
+        }
+        return res;
+    }
+
+    enum Corner{
+        CONVEX,
+        CONCAVE,
+    }
+
+    private static int getCorners(List<char[]> matrix, GardenNode node) {
+        var r = node.id().r();
+        var c = node.id().c();
+        //one corner can be convex on all sides (isolated node) so we need to return a number/list here to count
+        var res=new ArrayList<Corner>();
+
+        //up-left
+        var aboveWithinBounds = Solution.isWithinBounds(matrix, r - 1, c);
+        var leftWithinBounds = Solution.isWithinBounds(matrix, r, c - 1);
+        var aboveLeftWithinBounds = Solution.isWithinBounds(matrix, r - 1, c - 1);
+
+        var aboveTheSame = aboveWithinBounds && matrix.get(r - 1)[c] == node.id().symbol();
+        var leftTheSame = leftWithinBounds && matrix.get(r)[c - 1] == node.id().symbol();
+        var aboveLeftTheSame = aboveLeftWithinBounds && matrix.get(r - 1)[c - 1] == node.id().symbol();
+
+        if(aboveTheSame&&leftTheSame&&!aboveLeftTheSame)
+            res.add( Corner.CONCAVE );
+        if(!aboveTheSame&&!leftTheSame)
+            res.add( Corner.CONVEX );
+
+        //up-right
+        var rightWithinBounds = Solution.isWithinBounds(matrix, r, c + 1);
+        var aboveRightWithinBounds = Solution.isWithinBounds(matrix, r - 1, c + 1);
+
+        var rightTheSame = rightWithinBounds && matrix.get(r)[c + 1] == node.id().symbol();
+        var aboveRightTheSame = aboveRightWithinBounds && matrix.get(r - 1)[c + 1] == node.id().symbol();
+
+        if (aboveTheSame && rightTheSame && !aboveRightTheSame)
+            res.add( Corner.CONCAVE );
+        if (!aboveTheSame && !rightTheSame)
+            res.add( Corner.CONVEX );
+
+        //down-left
+        var downWithinBounds = Solution.isWithinBounds(matrix, r + 1, c);
+        var downLeftWithinBounds = Solution.isWithinBounds(matrix, r + 1, c - 1);
+
+        var downTheSame = downWithinBounds && matrix.get(r + 1)[c] == node.id().symbol();
+        var downLeftTheSame = downLeftWithinBounds && matrix.get(r + 1)[c - 1] == node.id().symbol();
+
+        if(downTheSame&&leftTheSame&&!downLeftTheSame)
+            res.add( Corner.CONCAVE );
+        if(!downTheSame&&!leftTheSame)
+            res.add( Corner.CONVEX );
+
+        //down-right
+        var downRightWithinBounds = Solution.isWithinBounds(matrix, r + 1, c + 1);
+        var downRightTheSame = downRightWithinBounds && matrix.get(r + 1)[c + 1] == node.id().symbol();
+
+        if (downTheSame && rightTheSame && !downRightTheSame)
+            res.add( Corner.CONCAVE );
+        if (!downTheSame && !rightTheSame)
+            res.add( Corner.CONVEX );
+
+        return res.size();
+    }
 }
 
 public class Solution {
@@ -42,7 +120,20 @@ public class Solution {
 //            System.out.println(region);
 
         System.out.println("Result part 1: "+ getRegionsPrice(regions));
+        System.out.println("Result part 2: "+ getRegionsPriceWithSides(matrix,regions));
 
+
+    }
+
+    private static int getRegionsPriceWithSides(List<char[]> matrix, List<Region> regions) {
+        var res=0;
+        for (var region:regions){
+            var sides=region.getSides(matrix);
+            var area=region.getArea();
+            var price=sides*area;
+            res+=price;
+        }
+        return res;
     }
 
     private static int getRegionsPrice(List<Region> regions) {
@@ -70,6 +161,12 @@ public class Solution {
             }
         }
         return regions;
+    }
+
+    static boolean isWithinBounds(List<char[]> matrix, int r,int c){
+        if(r<0||r>=matrix.size() || c<0||c>=matrix.get(0).length)
+            return false;
+        return true;
     }
 
     private static void expandAndPopulateRegion(List<char[]> matrix, boolean[][] visited, int r, int c, char neededSymbol, Region region) {
