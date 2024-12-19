@@ -6,7 +6,7 @@ import java.util.*;
 
 public class Solution {
     public static void main(String[] args) throws FileNotFoundException {
-        File input = new File("src/Year_2024/Ex_19_Linen_Layout/input_test.txt");
+        File input = new File("src/Year_2024/Ex_19_Linen_Layout/input.txt");
         Scanner myReader = new Scanner(input);
 
         List<String> availablePatterns=new ArrayList<>();
@@ -28,45 +28,47 @@ public class Solution {
         }
         myReader.close();
 
-        System.out.println(availablePatterns);
-        System.out.println(neededCombinations);
+//        System.out.println(availablePatterns);
+//        System.out.println(neededCombinations);
 
         System.out.println("Result part 1: "+ getPossibleDesignsNum(availablePatterns,neededCombinations));
 
-        Map<String, List<List<String>>> combinationToPatternsMap=new HashMap<>();
+        Map<String, Long> combinationToPatternsMap=new HashMap<>();
         System.out.println("Result part 2: "+ getPossibleDesignsNum2(availablePatterns,neededCombinations,combinationToPatternsMap));
 //        System.out.println(combinationToPatternsMap);
-
     }
 
-    private static long getPossibleDesignsNum2(List<String> availablePatterns, List<String> neededCombinations, Map<String, List<List<String>>> combinationToPatternsMap) {
+    private static long getPossibleDesignsNum2(List<String> availablePatterns, List<String> neededCombinations, Map<String, Long> patternToPossibleCombinationsMap) {
         for (var combination:neededCombinations){
-            combinationToPatternsMap.putIfAbsent(combination,new ArrayList<>());
-            checkCombinationPossible2(availablePatterns,combination,combination,combinationToPatternsMap,new ArrayList<String>());
+            checkCombinationPossible2(availablePatterns, combination,patternToPossibleCombinationsMap);
         }
 
         var res=0L;
-        for (var val:combinationToPatternsMap.values()){
-            res+=val.size();
+        for (var val:neededCombinations){
+            res+=patternToPossibleCombinationsMap.get(val);
         }
         return res;
     }
 
-    private static void checkCombinationPossible2(List<String> availablePatterns, String initialCombination , String remainingCombination, Map<String, List<List<String>>> combinationToPatternsMap, List<String> currentPattern) {
+    private static long checkCombinationPossible2(List<String> availablePatterns, String remainingCombination, Map<String, Long> patternToPossibleCombinationsMap) {
         if (remainingCombination.isEmpty()){
-            combinationToPatternsMap.get(initialCombination).add(new ArrayList<>(currentPattern));
-            return;
+            return 1;
         }
 
+        if(patternToPossibleCombinationsMap.containsKey(remainingCombination)){
+            return patternToPossibleCombinationsMap.get(remainingCombination);
+        }
+
+        var res=0L;
         for (var pattern:availablePatterns){
             if(remainingCombination.startsWith(pattern)){
-                currentPattern.add(pattern);
-                checkCombinationPossible2(availablePatterns,initialCombination,remainingCombination.substring(pattern.length()),combinationToPatternsMap, currentPattern);
-                currentPattern.removeLast();
+                res+= checkCombinationPossible2(availablePatterns, remainingCombination.substring(pattern.length()),patternToPossibleCombinationsMap);
             }
         }
 
-        return;
+        patternToPossibleCombinationsMap.put(remainingCombination,res);
+
+        return res;
     }
 
 
