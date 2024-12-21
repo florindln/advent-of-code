@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-record Position(int r,int c){}
-record Pair<T,R>(T left,R right){}
 record Triple<T,R,I>(T left,R mid,I right){}
 record Node(int r,int c,char symbol){}
 record Numpad(){
@@ -24,8 +22,33 @@ record Dirpad() {
 }
 
 public class Solution {
-    //the direction order is important becasue our holes are in the bottom left and top left, so we should prefer to go lastly left and right first
     public static final int[][] DIRS= {{0, 1},{-1, 0},{1, 0},{0, -1}};
+    public static final int[][][] DIRS_PERMUTATIONS={
+            {{0, 1}, {-1, 0}, {1, 0}, {0, -1}},
+            {{0, 1}, {-1, 0}, {0, -1}, {1, 0}},
+            {{0, 1}, {1, 0}, {-1, 0}, {0, -1}},
+            {{0, 1}, {1, 0}, {0, -1}, {-1, 0}},
+            {{0, 1}, {0, -1}, {-1, 0}, {1, 0}},
+            {{0, 1}, {0, -1}, {1, 0}, {-1, 0}},
+            {{-1, 0}, {0, 1}, {1, 0}, {0, -1}},
+            {{-1, 0}, {0, 1}, {0, -1}, {1, 0}},
+            {{-1, 0}, {1, 0}, {0, 1}, {0, -1}},
+            {{-1, 0}, {1, 0}, {0, -1}, {0, 1}},
+            {{-1, 0}, {0, -1}, {0, 1}, {1, 0}},
+            {{-1, 0}, {0, -1}, {1, 0}, {0, 1}},
+            {{1, 0}, {0, 1}, {-1, 0}, {0, -1}},
+            {{1, 0}, {0, 1}, {0, -1}, {-1, 0}},
+            {{1, 0}, {-1, 0}, {0, 1}, {0, -1}},
+            {{1, 0}, {-1, 0}, {0, -1}, {0, 1}},
+            {{1, 0}, {0, -1}, {0, 1}, {-1, 0}},
+            {{1, 0}, {0, -1}, {-1, 0}, {0, 1}},
+            {{0, -1}, {0, 1}, {-1, 0}, {1, 0}},
+            {{0, -1}, {0, 1}, {1, 0}, {-1, 0}},
+            {{0, -1}, {-1, 0}, {0, 1}, {1, 0}},
+            {{0, -1}, {-1, 0}, {1, 0}, {0, 1}},
+            {{0, -1}, {1, 0}, {0, 1}, {-1, 0}},
+            {{0, -1}, {1, 0}, {-1, 0}, {0, 1}},
+    };
     public static char dirToMove(int[] dir){
         if(dir[0]==-1 && dir[1]==0)
             return '^';
@@ -40,7 +63,7 @@ public class Solution {
     }
 
     public static void main(String[] args) throws FileNotFoundException {
-        File input = new File("src/Year_2024/Ex_21_Keypad_Conundrum/input_test.txt");
+        File input = new File("src/Year_2024/Ex_21_Keypad_Conundrum/input.txt");
         Scanner myReader = new Scanner(input);
 
         List<String> codes=new ArrayList<>();
@@ -65,21 +88,24 @@ public class Solution {
 //        System.out.println(codes);
 
         var testNeeded="029A";
-        var test1= getMovesByMatrix(testNeeded,Numpad.numpadMatrix);
-        if(test1.length()!=12)
-            throw new RuntimeException("test1 is incorrect , len should be 12, but is: "+test1.length());
+        var test1= getPossibleMovesByMatrix(testNeeded,Numpad.numpadMatrix);
+        var minTest1=test1.stream().min(Comparator.comparingInt(String::length)).orElse("");
+        if(minTest1.length()!=12)
+            throw new RuntimeException("test1 is incorrect , len should be 12, but is: "+minTest1.length());
 
-        var test2= getMovesByMatrix(test1,Dirpad.dirpadMatrix);
-        if(test2.length()!=28 )
-            throw new RuntimeException("test2 is incorrect, len should be 28, but is "+test2.length());
+//        var test2= getPossibleMovesByMatrix(test1,Dirpad.dirpadMatrix);
+//        if(test2.length()!=28 )
+//            throw new RuntimeException("test2 is incorrect, len should be 28, but is "+test2.length());
+//
+//        var test3=getPossibleMovesByMatrix(test2,Dirpad.dirpadMatrix);
+//        if(test3.length()!=68)
+//            throw new RuntimeException("test3 is incorrect, len should be 68, but is "+test3.length());
 
-        var test3=getMovesByMatrix(test2,Dirpad.dirpadMatrix);
-        if(test3.length()!=68)
-            throw new RuntimeException("test3 is incorrect, len should be 68, but is "+test3.length());
+//        var t=runAllMovesForACode("379A");
+//        var q=runAllMovesForACode("029A");
 
         var res1=getComplexityOfAllCodes(codes);
         System.out.println("Result part 1: "+ res1);
-
 
     }
 
@@ -104,30 +130,67 @@ public class Solution {
     }
 
     private static String runAllMovesForACode(String needed) {
-        var res1= getMovesByMatrix(needed,Numpad.numpadMatrix);
-        var res2= getMovesByMatrix(res1,Dirpad.dirpadMatrix);
-        var res3=getMovesByMatrix(res2,Dirpad.dirpadMatrix);
-        return res3;
-    }
+        var run1= getPossibleMovesByMatrix(needed,Numpad.numpadMatrix);
 
-    private static String getMovesByMatrix(String needed, char[][] matrix) {
-        var res=new StringBuilder();
-        //need to append an A at the beginning since we always start there
-        var newNeeded="A"+needed;
-        var neededArr= newNeeded.toCharArray();
-        for (int i = 0; i < neededArr.length-1; i++) {
-            var curr=neededArr[i];
-            var next=neededArr[i+1];
-            var moves=getMoves(curr,next,matrix);
-            moves.add('A');
-            for (var move:moves)
-                res.append(move);
+        var run2=new ArrayList<String>();
+        for(var tempRes:run1){
+            var temp=getPossibleMovesByMatrix(tempRes,Dirpad.dirpadMatrix);
+            run2.addAll(temp);
         }
-        return res.toString();
+
+        var run3=new ArrayList<String>();
+        for(var tempRes:run2){
+            var temp=getPossibleMovesByMatrix(tempRes,Dirpad.dirpadMatrix);
+            run3.addAll(temp);
+        }
+        var res=run3.stream().min(Comparator.comparingInt(String::length)).orElse("");
+
+        return res;
+    }
+
+    private static List<String> getPossibleMovesByMatrix(String needed, char[][] matrix) {
+        var possibilitiesFromOneStepToAnother = new ArrayList<Set<String>>();
+        //need to append an A at the beginning since we always start there
+        var newNeeded = "A" + needed;
+        var neededArr = newNeeded.toCharArray();
+        for (int i = 0; i < neededArr.length - 1; i++) {
+            var curr = neededArr[i];
+            var next = neededArr[i + 1];
+
+            var allWaysFromCurrToNext=new HashSet<String>();
+            for (var dirs : Solution.DIRS_PERMUTATIONS) {
+                var moves = getMoves(curr, next, matrix, dirs);
+                var currentString = new StringBuilder();
+                moves.add('A');
+                for (var move : moves)
+                    currentString.append(move);
+
+                allWaysFromCurrToNext.add(currentString.toString());
+            }
+            possibilitiesFromOneStepToAnother.add(allWaysFromCurrToNext);
+        }
+
+        var results = concatenateAll(possibilitiesFromOneStepToAnother, 0, "");
+
+        return results;
+    }
+
+    static List<String> concatenateAll(List<Set<String>> sets, int index, String current) {
+        List<String> results = new ArrayList<>();
+        if (index == sets.size()) {
+            results.add(current);
+            return results;
+        }
+
+        for (var str : sets.get(index)) {
+            results.addAll(concatenateAll(sets, index + 1, current + str));
+        }
+
+        return results;
     }
 
 
-    static List<Character> getMoves(char from, char to,char[][] matrix){
+    static List<Character> getMoves(char from, char to,char[][] matrix,int[][] dirs){
         var rowLen=matrix.length;
         var colLen=matrix[0].length;
         //current node,previous node, the direction we took
@@ -157,8 +220,7 @@ public class Solution {
                 break;
             }
 
-            //todo here instead of going from the beginning dir, we need to attempt to go in the same dir then loop over the dirs
-            int[][] dirsInOrder=getDirsInOrder(curr.right(),Solution.DIRS);
+            int[][] dirsInOrder=getDirsInOrder(curr.right(),dirs);
             for (var dir:dirsInOrder){
                 var dirSymbol=Solution.dirToMove(dir);
                 var newR=r+dir[0];
@@ -210,51 +272,6 @@ public class Solution {
         return res;
     }
 
-//    static int getPicoSecBFS(List<char[]> originalMatrix,List<Pair<Position,Integer>> basePath){
-//        var rowLen=originalMatrix.size();
-//        var colLen=originalMatrix.get(0).length;
-//
-//        //the pair is the node position and the distance form the start
-//        Queue<Pair<Position,Integer>> q=new LinkedList<>();
-//
-//        //queue the start
-//        for (int r = 0; r < rowLen; r++) {
-//            for (int c = 0; c < colLen; c++) {
-//                if(originalMatrix.get(r)[c]=='S')
-//                    q.add(new Pair<>(new Position(r,c),0));
-//            }
-//        }
-//
-//        var matrix=deepCopyMatrix(originalMatrix);
-//
-//        while (!q.isEmpty()){
-//            var curr=q.poll();
-//            var dist=curr.right();
-//            var r=curr.left().r();
-//            var c=curr.left().c();
-//
-//            basePath.add(curr);
-//
-//            if(matrix.get(r)[c]=='E')
-//                return dist;
-//
-//            matrix.get(r)[c]='O';
-//
-//            for(var dir:Solution.DIRS){
-//                var newR=r+dir[0];
-//                var newC=c+dir[1];
-//                if (isValid(matrix,newR,newC)){
-////                    matrix.get(newR)[newC]='O';
-//                    q.add(new Pair<>(new Position(newR,newC),dist+1));
-//                }
-//            }
-//        }
-////        for (var arr:matrix)
-////            System.out.println(arr);
-//
-//        throw new RuntimeException("Ending should be reached");
-//    }
-
     static boolean isValid(char[][] matrix,int r,int c){
         if(r<0||r>=matrix.length || c<0||c>=matrix[0].length)
             return false;
@@ -264,16 +281,5 @@ public class Solution {
             return false;
 
         return true;
-    }
-
-
-    static List<char[]> deepCopyMatrix(List<char[]> original) {
-        List<char[]> copy = new ArrayList<>();
-        for (char[] row : original) {
-            char[] newRow = new char[row.length];
-            System.arraycopy(row, 0, newRow, 0, row.length);
-            copy.add(newRow);
-        }
-        return copy;
     }
 }
