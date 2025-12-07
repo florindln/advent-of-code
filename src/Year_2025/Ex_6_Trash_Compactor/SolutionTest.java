@@ -26,9 +26,9 @@ class SolutionTest {
 
     @Test
     void solutionPart2_ExampleData() throws FileNotFoundException {
-        var dataTest= Solution.getInputData("src/Year_2025/Ex_5_Cafeteria/inputExample.txt");
-//        var solution= Solution.solutionPart2(dataTest);
-//        assertEquals(14L,solution);
+        var dataTest= Solution.getInputData("src/Year_2025/Ex_6_Trash_Compactor/inputExample.txt");
+        var solution= Solution.solutionPart2(dataTest);
+        assertEquals(3263827L,solution);
     }
 
     @Test
@@ -40,8 +40,8 @@ class SolutionTest {
 
     @Test
     void solutionPart2_RealData() throws FileNotFoundException {
-        var dataTest= Solution.getInputData("src/Year_2025/Ex_5_Cafeteria/input.txt");
-//        var solution= Solution.solutionPart2(dataTest);
-//        assertEquals(345821388687084L,solution);
+        var dataTest= Solution.getInputData("src/Year_2025/Ex_6_Trash_Compactor/input.txt");
+        var solution= Solution.solutionPart2(dataTest);
+        assertEquals(6019576291014L,solution);
     }
 }
